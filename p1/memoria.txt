@@ -2,7 +2,7 @@ Practica 1, Nikolai Pomares Jimenez
 
 Procesos en Unix/C
 ------------------
-1.Genera NUM_PROCESOS (5) procesos hijos en paralelo. Cada proceso repite 50 veces una linea con su informacion. El padre espera a que se acaben sus hijos, imprimiendo por pantalla información sobre los mismos y el código que devuelven al terminar. WEXITSTATUS extrae el codigo devuelto por el hijo del valor de salida del proceso. Es una macro, tal y como demuestra utilizar la flag -E (solo llama al preprocesador, no compila).
+1. Genera NUM_PROCESOS (5) procesos hijos en paralelo. Cada proceso repite 50 veces una linea con su informacion. El padre espera a que se acaben sus hijos, imprimiendo por pantalla información sobre los mismos y el código que devuelven al terminar. WEXITSTATUS extrae el codigo devuelto por el hijo del valor de salida del proceso. Es una macro, tal y como demuestra utilizar la flag -E (solo llama al preprocesador, no compila).
 
 2. 3. *contestados en ejemplo1.c*
 
@@ -10,3 +10,6 @@ Procesos en Unix/C
 
 Hilos POSIX
 -----------
+1. Genera NUM_HILOS (5) hilos. Cada hilo repite 50 veces una linea con su información. Espera a que acaben los hilos y muestra su salida. La principal diferencia es que mientras que los procesos continuan el código donde han sido creados, los hilos ejecutan una función. Además las salidas se intercalan más frecuentemente que en si se usaran procesos.
+
+2. *contestado en ejemplo3.c*
