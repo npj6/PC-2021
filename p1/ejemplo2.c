@@ -9,25 +9,28 @@
 //fork
 #include <unistd.h>
 
-#define PROC_NUM 2
+#define PROC_NUM 3
+#define PRINT_TIMES 5
 
-void print_int(int i) {
-	printf("%d", i);
+void print_char(char c) {
+	int i;
+	for(i=0; i<PRINT_TIMES; i++)
+		printf("%c", c);
 }
 
-void proc_code(int i) {
-	print_int(i);
+void proc_code(char c) {
+	print_char(c);
 	exit(0);
 }
 
 int main() {
 	int pid, p;
 
-	int i[PROC_NUM] = {1, 2};
+	int c[PROC_NUM] = {'A', 'B', 'C'};
 	for(p=0; p<PROC_NUM; p++) {
 		pid = fork();
 		if (pid == 0) {
-			proc_code(i[p]);
+			proc_code(c[p]);
 		}
 	}
 
