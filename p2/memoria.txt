@@ -1,0 +1,13 @@
+Practica 2, Nikolai Pomares Jimenez
+
+Hilos en Java
+-------------
+1. *implementado en Main.java* El resultado son 10 impresiones por pantalla de la frase elegida.
+
+2. *implementado en Main.java* La carga de trabajo de los hilos es muy baja, pero tras suficientes ejecuciones se puede observar que los mensajes se intercalan o cambian de orden.
+
+3. La diferencia principal consiste en la API a través de la que se accede a la implementacion de Thread, con lo cual la adecuación debe juzgarse en base a ingenieria del software (acoplamiento, legibilidad, arquitectura, etc.)
+
+4. *implementado en Main.java* El kernel de linux tiene problemas con la prioridad estatica de hilos, lo que deshabilita setPriority. Sin embargo las supuestas soluciones a este problema ofrecidas por [1] (privilegios de root y "-XX:ThreadPriorityPolicy=1 -XX:+UseThreadPriorities" al ejecutar) no parecen cambiar el comportamiento del programa tampoco.
+
+[1] https://medium.com/@vikas.singh_67409/deep-dive-into-thread-priority-in-java-be1a5da30a34
