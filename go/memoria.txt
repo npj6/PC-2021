@@ -1,0 +1,18 @@
+19-10-2021
+
+1. Instalación manual de Go (1.17.2)
+
+2. Hola mundo en Go
+    - un proyecto (modulo) necesita carpeta propia
+    - utiliza "go mod init nombre.de/mi.modulo" para inicializar el modulo
+    - los modulos se organizan en paquetes, declarados con "package nombre" ejemplo: "package main"
+    - los modulos se importan con "import nombre.de/mi.modulo"
+    - fmt es el modulo de formateo y contiene la funcion Println
+    - "go run ." y "go run nombre.de/mi.modulo" ejecutan el codigo del paquete
+    - "go mod tidy" encuentra y descarga los modulos requeridos y crea un archivo de autentificacion, go.sum
+
+TO DO:
+    - tutorial de creación de modulo
+    - leer sobre dependencias y nombrado de modulos
+    - investigar funcionamiento de "go run"
+    - ¿cómo y donde se compila?
