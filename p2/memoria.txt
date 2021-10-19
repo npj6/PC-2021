@@ -11,3 +11,13 @@ Hilos en Java
 4. *implementado en Main.java* El kernel de linux tiene problemas con la prioridad estatica de hilos, lo que deshabilita setPriority. Sin embargo las supuestas soluciones a este problema ofrecidas por [1] (privilegios de root y "-XX:ThreadPriorityPolicy=1 -XX:+UseThreadPriorities" al ejecutar) no parecen cambiar el comportamiento del programa tampoco.
 
 [1] https://medium.com/@vikas.singh_67409/deep-dive-into-thread-priority-in-java-be1a5da30a34
+
+Hilos en Python
+---------------
+1. *implementado en main.py* Despues de varias ejecuciones se pueden observar diferentes resultados incorrectos, resultado de una mala gestion de la concurrencia.
+
+1'. Aunque en principio podría parecer que el GIL debería resolver estos errores, ya que su funcion es evitar problemas de concurrencia (principalmente los causados por los contadores de referencias y las librerias en C), la ejecución de main.py demuestra que no es el caso.
+
+1''. *implementado en unary.py* Esto se debe a que la instrucción var += 1 no es atómica a nivel de bytecode. Para demostrar esto, unary.py utiliza la instrucción atomica var.append(None) [2] para contar en unario de manera concurrente. Gracias al GIL, unary.py siempre obtiene el resultado correcto.
+
+[2] https://docs.python.org/2/faq/library.html#what-kinds-of-global-value-mutation-are-thread-safe
