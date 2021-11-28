@@ -1,0 +1,19 @@
+Practica 1, Nikolai Pomares Jimenez
+
+1. *contestada en dekker.c, Peterson.java, hyman.py y lamport.py*
+
+2. La implementacion en C del algoritmo de Dekker y la implementacion en Python del algoritmo de Lamport funcionan correctamente. La implementación del algoritmo de Peterson en Java falla frecuentemente dandose lugar a un interbloqueo, aunque en ocasiones funciona como es esperado. La implementacion del algoritmo de Hyman siempre resulta en un interbloqueo.
+
+3.
+  - Las condiciones exigidas por los protocolos de E/S a una sección critica son:
+    1. Garantizar la exclusion mutua (sólo un proceso puede estar a la vez en la sección)
+    2. Un proceso que salga de la sección crítica debe permitir a otro entrar
+    3. Cuando un proceso quiera entrar en su seccion crítica debe poder si esta está libre
+    
+  - Cualquier problema de acceso concurrente a datos puede ser resuelto mediante condiciones de sincronización, por ejemplo un problema de productor/consumidor
+  
+  - Espera ocupada es una manera de detener la ejecución de un hilo o proceso comprobando en bucle una condición hasta que se cumpla
+  
+  - El principal inconveniente de la espera ocupada es que toma tiempo del procesador sin avanzar la ejecución
+  
+  - El orden de turno asegura que todos los procesos lleguen a ejecutarse en algun momento
