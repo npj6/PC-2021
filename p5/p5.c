@@ -12,6 +12,7 @@
 #define NUM_LECTURAS 10
 
 #define NUM_ESCRITORES 5
+#define NUM_ESCRITURAS 5
 
 #define true 1
 #define false 0
@@ -28,16 +29,19 @@ void *escribir(void *arg) {
   id = *(int *) arg;
   
   unsigned int seed = time(NULL) ^ id;
-  int waiting_time = rand_r(&seed) % 10;
-  sleep(waiting_time);
+  int waiting_time;
   
-  pthread_mutex_lock(&writer);
+  for(i=0; i<NUM_ESCRITURAS; ++i) {
+    waiting_time = rand_r(&seed) % 5;
+    sleep(waiting_time);
   
-  recurso = id;
-  printf("El escritor %d ha actualizado el recurso\n", id);
+    pthread_mutex_lock(&writer);
   
-  pthread_mutex_unlock(&writer);
+    recurso = id;
+    printf("El escritor %d ha actualizado el recurso\n", id);
   
+    pthread_mutex_unlock(&writer);
+  }
   pthread_exit(NULL);
 }
 
