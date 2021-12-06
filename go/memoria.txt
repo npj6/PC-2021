@@ -2,7 +2,7 @@
 
 1. Instalación manual de Go (1.17.2)
 
-2. Hola mundo en Go
+2. Tutorial hola mundo
     - un proyecto (modulo) necesita carpeta propia
     - utiliza "go mod init nombre.de/mi.modulo" para inicializar el modulo
     - los modulos se organizan en paquetes, declarados con "package nombre" ejemplo: "package main"
@@ -11,8 +11,69 @@
     - "go run ." y "go run nombre.de/mi.modulo" ejecutan el codigo del paquete
     - "go mod tidy" encuentra y descarga los modulos requeridos y crea un archivo de autentificacion, go.sum
 
+05-12-2021
+
+3. Investigación sobre modulos
+    - https://go.dev/doc/modules/managing-dependencies#naming_module
+    - busca modulos en pkg.go.dev
+    - utiliza "go get example.com/pkg" para añadir la dependencia a tu modulo
+    - utiliza "go get ." para añadir todas las dependencias de un paquete a tu modulo
+    - utiliza "go get example.com/pkg@v1.3.4" para actualizar la dependencia a la version especificada
+    - utiliza "go list -m -u all" para ver las ultimas versiones de todas las dependencias
+    - "go mod tidy" elimina las dependencias no importadas (autoremove-ish)
+    - utiliza la directiva "replace" en el archivo go.mod para depender de un modulo local:
+        require example.com/mod v0.0.0-up
+        replace example.com/mod v0.0.0-up => ../mod
+    - utiliza "go mod edit -replace=example.com/mod@v0.0.0-up=../mod" y "go get -d example.com/mod@v0.0.0-up" para asegurar consistencia en el go.mod
+    - las convenciones de nombrado establecen que los modulos deben llamarse "prefijo/texto-descriptivo"
+        · prefijo es el nombre de un repositorio o un nombre de organizacion
+        · texto-descriptivo es el nombre del modulo
+
+06-12-2021
+
+4. Investigación sobre el comando go
+    - https://pkg.go.dev/cmd/go
+    - flags para los subcomandos "build", "clean", "get", "install", "list", "run" y "test":
+        · -a : fuerza la recompilación de paquetes actualizados
+        · -n : imprime los comandos sin ejecutarlos
+        · -p n : numero de procesos a crear en paralelo
+        · -race : activar la detección de condiciones de carrera
+        · -msan : activar el desinfectante de memoria
+        · -v : imprimir los nombres de los paquetes a medida que se compilen
+        · -work : imprimir el nombre del directorio temporal de trabajo y no borrarlo al acabar
+        · -x : imprimir los comandos
+        · -pkgdir dir: instalar y cargar todos los paquetes desde dir en lugar de la ubicacion usual
+    - utiliza "go build" para compilar un proyecto
+    - utiliza "go clean" para eliminar los archivos objeto y en cache
+    - utiliza "go get" para añadir dependencias al modulo actual e instalarlas
+    - utiliza "go install" para compilar e instalar paquetes
+    - utiliza "go list" para listar los modulos
+    - utiliza "go run" para compilar y ejecutar el paquete principal
+    - utiliza "go test" para automatizar el testing 
+    - https://go.dev/blog/generate
+
+5. Tutorial creacion modulo
+    - las funciones se declaran con func, los parametros se declaran nombre primero tipo despues
+    - string es un tipo built-in para cadenas de texto
+    - las funciones que empiezan en mayuscula pueden ser llamadas desde otros modulos (nombres exportados)
+    - el operador ":=" declara e inicializa una variable
+        1 message := fmt.Sprintf("Hi, %v. Welcome!", name)
+    es equivalente a
+        1 var message string
+        2 message = fmt.Sprintf("Hi, %v. Welcome!", name)
+    - las funciones en go pueden devolver multiples valores (tuplas built-in?)
+    - la funcion "init()" se ejecuta automaticamente para inicializar un modulo
+    - para declarar slices (equivalente a arrays) se utiliza la sintaxis
+        1 []tipo { elemento, elemento, }
+    - utiliza "if variable != nil" para comprobar si una variable es nula
+    - los mapas se inicializan con "make(map[tipo-clave]tipo-valor)"
+    - "range" devuelve indice y valor de la slice iterada
+    - ejemplo de test unitario en greetings/greetings_test.go
+    - el directorio de instalacion ("go install") no es parte del path por defecto
 TO DO:
-    - tutorial de creación de modulo
-    - leer sobre dependencias y nombrado de modulos
-    - investigar funcionamiento de "go run"
-    - ¿cómo y donde se compila?
+    - continuar tutoriales
+    - leer:
+        · https://go.dev/doc/effective_go
+        · https://go.dev/blog/maps
+        · https://www.calhoun.io/when-nil-isnt-equal-to-nil/
+
