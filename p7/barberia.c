@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <pthread.h>
+#include <semaphore.h>
 
 //malloc, free, rand_r, time
 #include <stdlib.h>
@@ -29,24 +30,34 @@ la barberia cerrara si no quedan clientes
 
 */
 
-/*
-sem_t
+#define TAM_TOTAL 20
+#define TAM_SOFA 4
+#define NUM_SILLAS 3
+#define NUM_BARBEROS 3
 
-  max_capacidad, sofa, silla_barbero
+/*sem_wait(&sem) sem_post(&sem)*/
+//semaforos de hueco libre
+sem_t max_capacidad, sofa, silla_barbero;
+//semaforo de barberos libres
+sem_t coord;
 
-  coord (ocupacion de los barberos, para cortar el pelo y para cobrar)
+//planteamiento raro??
+//si el primer barbero empieza antes que el segundo
+//pero el segundo acaba antes que el primero
+//el segundo barbero liberará al cliente del primero
+//y el primer babero seguirá cortando el pelo al segundo cliente
 
-mutex
-  cliente_listo (cliente sentado en silla)
+//cambiar mutex por semaforos
 
-  terminado (corte de pelo terminado)
-
-  dejar_silla_barbero (cliente abandona silla tras corte de pelo)
-
-  pago (controla el pago)
-  recibo (entrega al cliente un recibe de pago)
-
-*/
+/*pthread_mutex_lock(&mutex) pthread_mutex_unlock(&mutex)*/
+//mutex silla
+pthread_mutex_t cliente_listo = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t dejar_silla_barbero = PTHREAD_MUTEX_INITIALIZER;
+//mutex corte de pelo
+pthread_mutex_t terminado= PTHREAD_MUTEX_INITIALIZER;
+//mutex caja registradora
+pthread_mutex_t pago = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t recibo = PTHREAD_MUTEX_INITIALIZER;
 
 /*
 https://www.dlsi.ua.es/asignaturas/pc/p05.html
@@ -61,27 +72,35 @@ typedef struct {
 } ClienteInfo_T;
 
 void *clienteFunc (void *arg) {
+  //crea una copia local y libera la memoria reservada
   ClienteInfo_T cliente = *(ClienteInfo_T *) arg;
-  free(arg); //crea una copia local y libera la memoria reservada
+  free(arg);
   
-  printf("CLIENTE %d SEED %d\n", cliente.id, cliente.seed);
-  //wait(max_capacidad)
-  //entrar_barberia()
-  //wait(sofa)
-  //sentarse_sofa()
-  //wait(silla_barbero)
+  printf("CLIENTE %d ENTRA EN ESCENA\n", cliente.id);
+  sem_wait(&max_capacidad);
+  sleep((rand_r(&cliente.seed) % 2) + 1);
+  printf("CLIENTE %d ENTRA A LA BABERIA\n", cliente.id);
+  sem_wait(&sofa);
+  sleep((rand_r(&cliente.seed) % 2) + 1);
+  printf("CLIENTE %d SE SIENTA EN EL SOFA\n", cliente.id);
+  //sem_wait(&silla_barbero)
   //levantarse_sofa()
-  //signal(sofa)
+  sleep((rand_r(&cliente.seed) % 2) + 1);
+  printf("CLIENTE %d SE LEVANTA DEL SOFA\n", cliente.id);
+  sem_post(&sofa);
   //sentarse_silla_barbero()
-  //signal(cliente_list)
-  //wait(terminado)
+  //unlock(&cliente_listo)
+  //lock(&terminado)
   //levantarse_silla_barbero()
-  //signal(dejar_silla_barbero)
+  //unlock(&dejar_silla_barbero)
   //pagar()
-  //signal(pago)
-  //wait(recibo)
+  //unlock(&pago)
+  //lock(&recibo)
   //salir_tienda()
-  //signal(max_capacidad)
+  sleep((rand_r(&cliente.seed) % 2) + 1);
+  printf("CLIENTE %d SE VA DE LA BARBERIA\n", cliente.id);
+  sem_post(&max_capacidad);
+  pthread_exit(NULL);
 }
 
 int main () {
@@ -89,8 +108,13 @@ int main () {
   unsigned int nextId = 0;
   int waitTime;
 
+  //inicializamos semaforos
+  sem_init(&max_capacidad, 0, TAM_TOTAL);
+  sem_init(&sofa, 0, TAM_SOFA);
+  sem_init(&silla_barbero, 0, NUM_SILLAS);
+  sem_init(&coord, 0, NUM_BARBEROS);
+
   pthread_t newThread; // ignoramos el id del thread cliente (no haremos join)
-  
   while (true) {
     ClienteInfo_T* cliente = (ClienteInfo_T*) malloc(sizeof(ClienteInfo_T));
     cliente->id = nextId; cliente->seed = rand_r(&seed);
