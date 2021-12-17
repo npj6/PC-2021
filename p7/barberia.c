@@ -30,6 +30,14 @@ la barberia cerrara si no quedan clientes
 
 */
 
+//planteamiento raro??
+//si el primer barbero empieza antes que el segundo
+//pero el segundo acaba antes que el primero
+//el segundo barbero liberará al cliente del primero
+//y el primer babero seguirá cortando el pelo al segundo cliente
+
+//idealmente cada barbero y silla son entidades individuales con mutex propio
+
 #define TAM_TOTAL 20
 #define TAM_SOFA 4
 #define NUM_SILLAS 3
@@ -40,14 +48,7 @@ la barberia cerrara si no quedan clientes
 sem_t max_capacidad, sofa, silla_barbero;
 //semaforo de barberos libres
 sem_t coord;
-
-//planteamiento raro??
-//si el primer barbero empieza antes que el segundo
-//pero el segundo acaba antes que el primero
-//el segundo barbero liberará al cliente del primero
-//y el primer babero seguirá cortando el pelo al segundo cliente
-
-//cambiar mutex por semaforos
+//semaforos sillas
 
 /*pthread_mutex_lock(&mutex) pthread_mutex_unlock(&mutex)*/
 //mutex silla
@@ -67,25 +68,64 @@ gcc -o barberia barberia.c -lpthread
 #define true 1
 #define false 0
 
+// las esperas se realizan en ticks en lugar de segundos
+// la constante TICK define el numero de segundos de un tick
+#define TICK 3
+
 typedef struct {
   unsigned int id, seed;
 } ClienteInfo_T;
+
+typedef ClienteInfo_T BarberoInfo_T;
+
+void *cajeroFunc(void *arg) {
+  while(true) {
+    //sem_wait(&pago);
+    //sem_wait(&coord);
+    //cobrar();
+    //sem_post(&coord);
+    //sem_post(&recibo);
+  }
+}
+
+void *barberoFunc(void *arg) {
+  BarberoInfo_T barbero = *(BarberoInfo_T *) arg;
+  free(arg);
+
+  while(true) {
+    //sem_wait(&cliente_listo);
+    //sem_wait(&coord);
+    //cortar_pelo();
+    //sem_post(&coord);
+    //sem_post(&terminado);
+    //sem_wait(&dejar_silla_barbero)
+    //sem_post(&silla_barbero)
+  }
+}
 
 void *clienteFunc (void *arg) {
   //crea una copia local y libera la memoria reservada
   ClienteInfo_T cliente = *(ClienteInfo_T *) arg;
   free(arg);
-  
+  int waitingTime;
+
   printf("CLIENTE %d ENTRA EN ESCENA\n", cliente.id);
+
   sem_wait(&max_capacidad);
-  sleep((rand_r(&cliente.seed) % 2) + 1);
+  waitingTime = (rand_r(&cliente.seed) % 2) + 1;
+  sleep(waitingTime * TICK);
   printf("CLIENTE %d ENTRA A LA BABERIA\n", cliente.id);
+
   sem_wait(&sofa);
-  sleep((rand_r(&cliente.seed) % 2) + 1);
+  waitingTime = (rand_r(&cliente.seed) % 2) + 1;
+  sleep(waitingTime * TICK);
   printf("CLIENTE %d SE SIENTA EN EL SOFA\n", cliente.id);
+  
   //sem_wait(&silla_barbero)
   //levantarse_sofa()
-  sleep((rand_r(&cliente.seed) % 2) + 1);
+  
+  waitingTime = (rand_r(&cliente.seed) % 2) + 1;
+  sleep(waitingTime * TICK);
   printf("CLIENTE %d SE LEVANTA DEL SOFA\n", cliente.id);
   sem_post(&sofa);
   //sentarse_silla_barbero()
@@ -97,16 +137,20 @@ void *clienteFunc (void *arg) {
   //unlock(&pago)
   //lock(&recibo)
   //salir_tienda()
-  sleep((rand_r(&cliente.seed) % 2) + 1);
+
+  waitingTime = (rand_r(&cliente.seed) % 2) + 1;
+  sleep(waitingTime * TICK);
   printf("CLIENTE %d SE VA DE LA BARBERIA\n", cliente.id);
   sem_post(&max_capacidad);
+
   pthread_exit(NULL);
 }
 
 int main () {
   unsigned int seed = time(NULL);
   unsigned int nextId = 0;
-  int waitTime;
+  int waitingTime, i;
+  pthread_t newThread; // ignoramos los id de los threads (no haremos join)
 
   //inicializamos semaforos
   sem_init(&max_capacidad, 0, TAM_TOTAL);
@@ -114,14 +158,20 @@ int main () {
   sem_init(&silla_barbero, 0, NUM_SILLAS);
   sem_init(&coord, 0, NUM_BARBEROS);
 
-  pthread_t newThread; // ignoramos el id del thread cliente (no haremos join)
+  for(i=0; i<NUM_BARBEROS; ++i) {
+    BarberoInfo_T* barbero = (BarberoInfo_T*) malloc(sizeof(BarberoInfo_T));
+    barbero->id = i; barbero->seed = rand_r(&seed);
+    pthread_create(&newThread, NULL, barberoFunc, barbero);
+  }
+
   while (true) {
     ClienteInfo_T* cliente = (ClienteInfo_T*) malloc(sizeof(ClienteInfo_T));
     cliente->id = nextId; cliente->seed = rand_r(&seed);
     nextId++;
     pthread_create(&newThread, NULL, clienteFunc, cliente);
-    waitTime = (rand_r(&seed) % 5) + 1;
-    sleep(waitTime);
+    //espera
+    waitingTime = (rand_r(&seed) % 5) + 1;
+    sleep(waitingTime * TICK);
   }
   return 0;
 }
