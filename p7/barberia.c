@@ -1,3 +1,5 @@
+/*gcc -o barberia barberia.c -lpthread*/
+
 #include <stdio.h>
 #include <pthread.h>
 #include <semaphore.h>
@@ -8,27 +10,6 @@
 
 //sleep
 #include <unistd.h>
-
-/*
-
-3 barberos, 3 sillas de barberos
-sofa 4 plazas
-sala espera de pie
-caja cobrar
-
-si la barberia está llena, no pueden entrar más clientes la capacidad es 20
-
-al entrar los clientes toman asiento o se quedan de pie
-
-cuando un barbero queda libre coge al cliente que lleva mas tiempo esperando en el sofa y el cliente que esta de pie mas tiempo toma asiento en el sofa
-
-al finalizar el corte de pelo cualquier barbero puede aceptar el pago, pero solo 1 caja a la vez
-
-los barberos dividen su tiempo entre cortar el pelo, aceptar pagos y dormir en su silla esperando clientes
-
-la barberia cerrara si no quedan clientes
-
-*/
 
 //planteamiento raro??
 //si el primer barbero empieza antes que el segundo
@@ -49,21 +30,14 @@ sem_t max_capacidad, sofa, silla_barbero;
 //semaforo de barberos libres
 sem_t coord;
 //semaforos sillas
-
-/*pthread_mutex_lock(&mutex) pthread_mutex_unlock(&mutex)*/
-//mutex silla
-pthread_mutex_t cliente_listo = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t dejar_silla_barbero = PTHREAD_MUTEX_INITIALIZER;
-//mutex corte de pelo
-pthread_mutex_t terminado= PTHREAD_MUTEX_INITIALIZER;
-//mutex caja registradora
-pthread_mutex_t pago = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t recibo = PTHREAD_MUTEX_INITIALIZER;
+sem_t cliente_listo;
+sem_t dejar_silla_barbero;
+//semaforo corte de pelo
+sem_t terminado;
+//semaforo pagos
+sem_t pago, recibo;
 
 /*
-https://www.dlsi.ua.es/asignaturas/pc/p05.html
-https://www.dlsi.ua.es/asignaturas/pc/p07.html
-gcc -o barberia barberia.c -lpthread
 */
 #define true 1
 #define false 0
@@ -79,27 +53,47 @@ typedef struct {
 typedef ClienteInfo_T BarberoInfo_T;
 
 void *cajeroFunc(void *arg) {
+  unsigned int seed = *(unsigned int *) arg;
+  int waitingTime;
   while(true) {
-    //sem_wait(&pago);
-    //sem_wait(&coord);
-    //cobrar();
-    //sem_post(&coord);
-    //sem_post(&recibo);
+    printf("\033[36mCAJERO ESPERANDO PAGO\n\033[0m");
+    sem_wait(&pago);
+
+    printf("\033[36mCAJERO ESPERANDO BARBERO LIBRE\n\033[0m");
+    sem_wait(&coord);
+
+    printf("\033[36mCAJERO REALIZANDO TRANSACCION\n\033[0m");
+    waitingTime = (rand_r(&seed) % 5) + 1;
+    sleep(waitingTime * TICK);
+
+    printf("\033[36mCAJERO HA TERMINADO TRANSACCION\n\033[0m");
+    sem_post(&coord);
+    sem_post(&recibo);
   }
 }
 
 void *barberoFunc(void *arg) {
   BarberoInfo_T barbero = *(BarberoInfo_T *) arg;
   free(arg);
+  int waitingTime;
 
   while(true) {
-    //sem_wait(&cliente_listo);
-    //sem_wait(&coord);
-    //cortar_pelo();
-    //sem_post(&coord);
-    //sem_post(&terminado);
-    //sem_wait(&dejar_silla_barbero)
-    //sem_post(&silla_barbero)
+    printf("\033[33mBARBERO %d ESPERANDO CLIENTE\n\033[0m", barbero.id);
+    sem_wait(&cliente_listo);
+
+    sem_wait(&coord);
+    printf("\033[33mBARBERO %d CORTANDO PELO\n\033[0m", barbero.id);
+    waitingTime = (rand_r(&barbero.seed) % 7) + 1;
+    sleep(waitingTime * TICK);
+
+    printf("\033[33mBARBERO %d HA ACABADO DE CORTAR PELO\n\033[0m", barbero.id);
+    sem_post(&coord);
+    sem_post(&terminado);
+    
+    printf("\033[33mBARBERO %d ESPERANDO A QUE LA SILLA SE LIBERE\n\033[0m", barbero.id);
+    sem_wait(&dejar_silla_barbero);
+    sem_post(&silla_barbero);
+    printf("\033[33mBARBERO %d TIENE LA SILLA LIBRE\n\033[0m", barbero.id);
   }
 }
 
@@ -109,38 +103,45 @@ void *clienteFunc (void *arg) {
   free(arg);
   int waitingTime;
 
-  printf("CLIENTE %d ENTRA EN ESCENA\n", cliente.id);
+  printf("\033[31mCLIENTE %d ENTRA EN ESCENA\n\033[0m", cliente.id);
 
   sem_wait(&max_capacidad);
+  printf("\033[31mCLIENTE %d ENTRA A LA BABERIA\n\033[0m", cliente.id);
   waitingTime = (rand_r(&cliente.seed) % 2) + 1;
   sleep(waitingTime * TICK);
-  printf("CLIENTE %d ENTRA A LA BABERIA\n", cliente.id);
 
   sem_wait(&sofa);
+  printf("\033[31mCLIENTE %d SE SIENTA EN EL SOFA\n\033[0m", cliente.id);
   waitingTime = (rand_r(&cliente.seed) % 2) + 1;
   sleep(waitingTime * TICK);
-  printf("CLIENTE %d SE SIENTA EN EL SOFA\n", cliente.id);
   
-  //sem_wait(&silla_barbero)
-  //levantarse_sofa()
-  
+  sem_wait(&silla_barbero);
+  printf("\033[31mCLIENTE %d SE LEVANTA DEL SOFA Y SE SIENTA EN UNA SILLA\n\033[0m", cliente.id);
   waitingTime = (rand_r(&cliente.seed) % 2) + 1;
   sleep(waitingTime * TICK);
-  printf("CLIENTE %d SE LEVANTA DEL SOFA\n", cliente.id);
   sem_post(&sofa);
-  //sentarse_silla_barbero()
-  //unlock(&cliente_listo)
-  //lock(&terminado)
-  //levantarse_silla_barbero()
-  //unlock(&dejar_silla_barbero)
-  //pagar()
-  //unlock(&pago)
-  //lock(&recibo)
-  //salir_tienda()
+
+  sem_post(&cliente_listo);
+  printf("\033[31mCLIENTE %d ESTA RECIBIENDO UN CORTE DE PELO\n\033[0m", cliente.id);
+  sem_wait(&terminado);
+  printf("\033[31mCLIENTE %d HA RECIBIDO SU CORTE DE PELO\n\033[0m", cliente.id);
+
+  printf("\033[31mCLIENTE %d SE LEVANTA DE LA SILLA\n\033[0m", cliente.id);
+  waitingTime = (rand_r(&cliente.seed) % 2) + 1;
+  sleep(waitingTime * TICK);
+  sem_post(&dejar_silla_barbero);
+
+  printf("\033[31mCLIENTE %d VA A PAGAR\n\033[0m", cliente.id);
+  waitingTime = (rand_r(&cliente.seed) % 2) + 1;
+  sleep(waitingTime * TICK);
+  sem_post(&pago);
+
+  printf("\033[31mCLIENTE %d ESPERANDO RECIBO\n\033[0m", cliente.id);
+  sem_wait(&recibo);
 
   waitingTime = (rand_r(&cliente.seed) % 2) + 1;
   sleep(waitingTime * TICK);
-  printf("CLIENTE %d SE VA DE LA BARBERIA\n", cliente.id);
+  printf("\033[31mCLIENTE %d SE VA DE LA BARBERIA\n\033[0m", cliente.id);
   sem_post(&max_capacidad);
 
   pthread_exit(NULL);
@@ -149,6 +150,7 @@ void *clienteFunc (void *arg) {
 int main () {
   unsigned int seed = time(NULL);
   unsigned int nextId = 0;
+  unsigned int cajeroSeed;
   int waitingTime, i;
   pthread_t newThread; // ignoramos los id de los threads (no haremos join)
 
@@ -157,6 +159,14 @@ int main () {
   sem_init(&sofa, 0, TAM_SOFA);
   sem_init(&silla_barbero, 0, NUM_SILLAS);
   sem_init(&coord, 0, NUM_BARBEROS);
+  sem_init(&cliente_listo, 0, 0);
+  sem_init(&dejar_silla_barbero, 0, 0);
+  sem_init(&terminado, 0, 0);
+  sem_init(&pago, 0, 0);
+  sem_init(&recibo, 0, 0);
+
+  cajeroSeed = rand_r(&seed);
+  pthread_create(&newThread, NULL, cajeroFunc, &cajeroSeed);
 
   for(i=0; i<NUM_BARBEROS; ++i) {
     BarberoInfo_T* barbero = (BarberoInfo_T*) malloc(sizeof(BarberoInfo_T));
