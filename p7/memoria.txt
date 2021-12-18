@@ -1,0 +1,9 @@
+En la traza de la imagen barbero.png las flechas lilas marcan las acciones del cliente 8, las flechas verdes marcan las acciones del barbero 0, las flechas naranjas marcan las acciones del cliente 9 y las flechas rosas marcan las acciones del barbero 1.
+
+Asumimos la cercania en el tiempo de los mensajes como indicador de relación (el barbero 0 está cortando el pelo al cliente 8 y el barbero 1 está cortando al cliente 9).
+
+El cliente 8 es el primero que empieza a esperar en los semaforos, pero el barbero 1 tiene un menor tiempo de espera (al ser estos aleatorios). El resultado es que el barbero 1 al acabar de cortar el pelo libera al cliente 8, a pesar de haber empezado a cortar el pelo al cliente 9.
+
+Después, es el barbero 0 el que libera al cliente 8, pero una cadena de ocurrencias similares podría complicar la traza aun más.
+
+Idealmente cada barbero y silla serían entidades individuales con mutex propio, pero esto complicaría la estructura del programa.
